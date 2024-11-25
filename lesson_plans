@@ -15,7 +15,7 @@ nlp = spacy.load("en_core_web_sm")
 # Define a function to analyze text
 def analyze_lesson_plan(text):
     doc = nlp(text)
-    # Example: Extract key sentences or phrases related to "student agency"
+    # Extract key sentences or phrases related to "student agency"
     keywords = ["choice", "decision", "discuss", "problem", "reflection", "real-world"]
     relevant_sentences = [sent.text for sent in doc.sents if any(kw in sent.text.lower() for kw in keywords)]
     return relevant_sentences
