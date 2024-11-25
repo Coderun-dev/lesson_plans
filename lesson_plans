@@ -1,0 +1,54 @@
+import pandas as pd
+
+# Load the CSV file
+df = pd.read_csv("lesson_plans.csv")  
+lesson_texts = df['lesson_plan_text'].tolist()
+
+# Preview the data
+print(df.head())
+
+import spacy
+
+# Load the spaCy language model
+nlp = spacy.load("en_core_web_sm")
+
+# Define a function to analyze text
+def analyze_lesson_plan(text):
+    doc = nlp(text)
+    # Example: Extract key sentences or phrases related to "student agency"
+    keywords = ["choice", "decision", "discuss", "problem", "reflection", "real-world"]
+    relevant_sentences = [sent.text for sent in doc.sents if any(kw in sent.text.lower() for kw in keywords)]
+    return relevant_sentences
+
+# Apply analysis to each lesson plan
+df['student_agency_related'] = df['lesson_plan_text'].apply(analyze_lesson_plan)
+
+from spacy.matcher import Matcher
+
+matcher = Matcher(nlp.vocab)
+
+# Define patterns for "student agency"
+patterns = [
+    [{"LOWER": "choice"}],
+    [{"LOWER": "decision"}, {"LOWER": "discuss"}],
+    [{"LOWER": "problem"}],
+    [{"LOWER": "reflection"}, {"LOWER": "real-world"}],
+]
+
+matcher.add("STUDENT_AGENCY", patterns)
+
+def match_patterns(text):
+    doc = nlp(text)
+    matches = matcher(doc)
+    return [doc[start:end].text for match_id, start, end in matches]
+
+df['matched_patterns'] = df['lesson_plan_text'].apply(match_patterns)
+
+# Count occurrences of relevant content
+df['num_relevant_sentences'] = df['student_agency_related'].apply(len)
+
+# Save the results for review
+df.to_csv("lesson_plan_analysis.csv", index=False)
+
+# Print a summary
+print(df[['lesson_plan_text', 'num_relevant_sentences', 'matched_patterns']])
